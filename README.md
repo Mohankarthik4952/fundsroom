@@ -24,7 +24,6 @@ A full-stack operations portal for a wholesale/distribution company with custome
 ```bash
 cd backend
 npm install
-cp .env.example .env
 npx prisma generate
 npx prisma db push
 npm run db:seed
