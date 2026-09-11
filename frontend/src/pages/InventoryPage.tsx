@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 type StockMovement = {
   id: string;
@@ -38,25 +39,36 @@ export default function InventoryPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const token = localStorage.getItem("mini-erp-token");
+  const { token } = useAuth();
 
   const headers = useMemo(
     () => ({
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : "",
       "Content-Type": "application/json",
     }),
     [token],
   );
 
   useEffect(() => {
+    if (!token) {
+      setError("Please log in to view inventory.");
+      setLoading(false);
+      return;
+    }
+
     loadInventory();
-  }, []);
+  }, [token]);
 
   async function loadInventory() {
     try {
       setLoading(true);
       setError("");
+
+      if (!token) {
+        setError("Please log in to view inventory.");
+        setLoading(false);
+        return;
+      }
 
       const [movementsResponse, productsResponse] = await Promise.all([
         fetch(`${API_URL}/stock-movements`, {

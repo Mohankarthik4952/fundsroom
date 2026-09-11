@@ -22,14 +22,28 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
         callback(null, true);
         return;
       }
 
-      callback(null, false);
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      const isAllowed =
+        allowedOrigins.some(
+          (allowed) => allowed.replace(/\/$/, "") === normalizedOrigin,
+        ) ||
+        (process.env.NODE_ENV === "production" && /^https?:\/\//.test(origin));
+
+      if (isAllowed) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`), false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use(express.json());
